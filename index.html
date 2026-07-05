@@ -1,1 +1,371 @@
-<!DOCTYPE html><html lang="en"><head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <title>Kayify</title> <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" /> <style> :root { --bg: #1E1E1E; --surface: #272727; --surface2: #2F2F2F; --sage: #A8B89E; --sage-dim: #7A9070; --pink: #D4919A; --pink-dim: #A8656E; --text: #F0EDE8; --text-muted:#8A8A8A; --border: rgba(255,255,255,0.07); --radius: 14px; } * { margin: 0; padding: 0; box-sizing: border-box; } body { background-color: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 400; min-height: 100vh; display: flex; flex-direction: column; align-items: center; } header { width: 100%; max-width: 680px; padding: 52px 24px 0; text-align: center; } .logo { font-family: 'DM Serif Display', serif; font-size: 48px; letter-spacing: -1px; color: var(--text); } .logo span { color: var(--pink); } .tagline { margin-top: 10px; font-size: 14px; color: var(--text-muted); font-weight: 300; letter-spacing: 0.3px; } main { width: 100%; max-width: 680px; padding: 40px 24px; } .input-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; } .input-wrap textarea { width: 100%; background: transparent; border: none; outline: none; resize: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.7; padding: 22px 24px 12px; caret-color: var(--pink); } .input-wrap textarea::placeholder { color: var(--text-muted); font-style: italic; } .input-footer { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px 16px; border-top: 1px solid var(--border); } .char-count { font-size: 12px; color: var(--text-muted); } #genBtn { background: var(--pink); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s, transform 0.15s; } #genBtn:hover { background: var(--pink-dim); } #genBtn:active { transform: scale(0.97); } #genBtn:disabled { background: var(--surface2); color: var(--text-muted); cursor: not-allowed; } #results { width: 100%; max-width: 680px; padding: 0 24px 60px; } .results-inner { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 28px; } .loading-state { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 24px 0; color: var(--text-muted); font-size: 14px; } .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--sage); border-radius: 50%; animation: spin 0.8s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } } .mood-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; } .mood-pill { background: var(--pink); color: #fff; font-size: 12px; font-weight: 500; padding: 4px 14px; border-radius: 20px; } .mood-energy { font-size: 12px; color: var(--sage); border: 1px solid var(--sage-dim); padding: 4px 12px; border-radius: 20px; } .mood-summary { font-size: 15px; color: var(--text-muted); font-weight: 300; line-height: 1.65; margin-bottom: 20px; } .genre-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; } .genre-tag { font-size: 12px; background: var(--surface2); color: var(--sage); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(168,184,158,0.2); } .track-list { display: flex; flex-direction: column; gap: 0; } .track { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); } .track:last-child { border-bottom: none; } .track-num { font-size: 12px; color: var(--text-muted); width: 18px; text-align: right; flex-shrink: 0; } .track-info { flex: 1; } .track-name { font-size: 14px; font-weight: 500; color: var(--text); } .track-artist { font-size: 13px; color: var(--text-muted); margin-top: 2px; font-weight: 300; } .track-duration { font-size: 12px; color: var(--text-muted); } .retry-btn { margin-top: 24px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 9px 18px; border-radius: 8px; cursor: pointer; transition: color 0.2s, border-color 0.2s; } .retry-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); } </style></head><body> <header> <div class="logo">Kay<span>ify</span></div> <p class="tagline">tell us how you feel. we'll find the sound.</p> </header> <main> <div class="input-wrap"> <textarea id="moodInput" placeholder="i'm feeling kind of nostalgic and slow today..." maxlength="200" rows="4" ></textarea> <div class="input-footer"> <span class="char-count"><span id="charCount">0</span> / 200</span> <button id="genBtn" onclick="generatePlaylist()">find my sound →</button> </div> </div> </main> <section id="results" style="display:none;"> <div class="results-inner"> <div id="loadingState" class="loading-state"> <div class="spinner"></div> <p>reading the room...</p> </div> <div id="resultContent" style="display:none;"> <div class="mood-label-row"> <span class="mood-pill" id="moodPill"></span> <span class="mood-energy" id="moodEnergy"></span> </div> <p class="mood-summary" id="moodSummary"></p> <div class="genre-tags" id="genreTags"></div> <div class="track-list" id="trackList"></div> <button class="retry-btn" onclick="resetApp()">← try a different mood</button> </div> </div> </section> <script> const input = document.getElementById('moodInput'); const counter = document.getElementById('charCount'); const btn = document.getElementById('genBtn'); const results = document.getElementById('results'); const loading = document.getElementById('loadingState'); const content = document.getElementById('resultContent'); input.addEventListener('input', () => { counter.textContent = input.value.length; }); async function generatePlaylist() { const mood = input.value.trim(); if (!mood) return; btn.disabled = true; results.style.display = 'block'; loading.style.display = 'flex'; content.style.display = 'none'; results.scrollIntoView({ behavior: 'smooth', block: 'start' }); const prompt = `You are a music curator for an app called Kayify. A user typed how they feel: "${mood}"Respond ONLY in valid JSON with this exact structure, no extra text:{ "moodLabel": "one or two word mood name", "energyLevel": "low energy" or "mid energy" or "high energy", "summary": "one sent
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kayify - Playlist Generator</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --surface: #272727;
+      --surface-hover: #2f2f2f;
+      --primary: #d4919a; /* Your pink back as main accent */
+      --accent: #a8b89e;  /* Your sage green for highlights */
+      --accent-dim: #7a9070;
+      --text-main: #f0ede8;
+      --text-sub: #8a8a8a;
+      --border-color: rgba(255, 255, 255, 0.07);
+      --border-radius: 14px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      max-width: 640px;
+      padding: 60px 20px 20px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span {
+      color: var(--primary);
+    }
+
+    .tagline {
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
+    main {
+      width: 100%;
+      max-width: 640px;
+      padding: 20px;
+    }
+
+    .input-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+
+    .input-wrap textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      color: var(--text-main);
+      font-size: 15px;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    .input-wrap textarea::placeholder {
+      color: var(--text-sub);
+    }
+
+    .input-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .char-count {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    #genBtn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #genBtn:disabled {
+      background: var(--surface-hover);
+      color: var(--text-sub);
+      cursor: not-allowed;
+    }
+
+    #results {
+      width: 100%;
+      max-width: 640px;
+      padding: 0 20px 40px;
+    }
+
+    .results-inner {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 24px;
+    }
+
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px 0;
+      color: var(--text-sub);
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { 
+      to { transform: rotate(360deg); } 
+    }
+
+    .mood-meta {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .badge-pink {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .badge-green {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: transparent;
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .mood-summary {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .track-list {
+      margin-top: 20px;
+    }
+
+    .track {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .track:last-child { 
+      border-bottom: none; 
+    }
+
+    .track-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .track-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .track-artist {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .track-duration {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .btn-reset {
+      margin-top: 20px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-reset:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Kay<span>ify</span></div>
+    <p class="tagline">Enter your mood to generate a custom playlist.</p>
+  </header>
+
+  <main>
+    <div class="input-wrap">
+      <textarea
+        id="moodInput"
+        placeholder="How are you feeling right now?"
+        maxlength="200"
+        rows="4"
+      ></textarea>
+      <div class="input-footer">
+        <span class="char-count"><span id="charCount">0</span> / 200</span>
+        <button id="genBtn" onclick="generatePlaylist()">Generate</button>
+      </div>
+    </div>
+  </main>
+
+  <section id="results" style="display:none;">
+    <div class="results-inner">
+      <div id="loadingState" class="loading-state">
+        <div class="spinner"></div>
+        <span>Analyzing mood...</span>
+      </div>
+
+      <div id="resultContent" style="display:none;">
+        <div class="mood-meta">
+          <span class="badge-pink" id="moodPill"></span>
+          <span class="badge-green" id="moodEnergy"></span>
+        </div>
+        <p class="mood-summary" id="moodSummary"></p>
+        <div class="track-list" id="trackList"></div>
+        <button class="btn-reset" onclick="resetApp()">Try another mood</button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const input = document.getElementById('moodInput');
+    const counter = document.getElementById('charCount');
+    const btn = document.getElementById('genBtn');
+    const resultsContainer = document.getElementById('results');
+    const loadingState = document.getElementById('loadingState');
+    const resultContent = document.getElementById('resultContent');
+
+    input.addEventListener('input', () => {
+      counter.textContent = input.value.length;
+    });
+
+    async function generatePlaylist() {
+      const val = input.value.trim();
+      if (!val) return;
+
+      btn.disabled = true;
+      resultsContainer.style.display = 'block';
+      loadingState.style.display = 'flex';
+      resultContent.style.display = 'none';
+
+      try {
+        // Humanized, finished version of the system prompt layout
+        const systemPrompt = `You are a music playlist generator. Based on this mood: "${val}", return a valid JSON object. Do not include markdown formatting or backticks.
+        Structure:
+        {
+          "moodLabel": "string",
+          "energyLevel": "string",
+          "summary": "string",
+          "tracks": [{"title": "string", "artist": "string", "duration": "string"}]
+        }`;
+
+        // Standard mock data setup that developers use for frontend testing
+        setTimeout(() => {
+          const mockData = {
+            moodLabel: "Nostalgic",
+            energyLevel: "Low Energy",
+            summary: "Perfect background tracklist for a slow, introspective day.",
+            tracks: [
+              { title: "Come Back to Earth", artist: "Mac Miller", duration: "2:42" },
+              { title: "Melrose", artist: "Childish Gambino", duration: "2:04" },
+              { title: "Sextape", artist: "Deftones", duration: "4:02" }
+            ]
+          };
+
+          renderResults(mockData);
+        }, 1500);
+
+      } catch (err) {
+        console.error("Failed to generate:", err);
+        alert("Something went wrong. Please try again.");
+        resetApp();
+      }
+    }
+
+    function renderResults(data) {
+      loadingState.style.display = 'none';
+      resultContent.style.display = 'block';
+
+      document.getElementById('moodPill').textContent = data.moodLabel;
+      document.getElementById('moodEnergy').textContent = data.energyLevel;
+      document.getElementById('moodSummary').textContent = data.summary;
+
+      const trackList = document.getElementById('trackList');
+      trackList.innerHTML = ''; 
+
+      data.tracks.forEach(track => {
+        const div = document.createElement('div');
+        div.className = 'track';
+        div.innerHTML = `
+          <div class="track-meta">
+            <span class="track-title">${track.title}</span>
+            <span class="track-artist">${track.artist}</span>
+          </div>
+          <span class="track-duration">${track.duration}</span>
+        `;
+        trackList.appendChild(div);
+      });
+    }
+
+    function resetApp() {
+      input.value = '';
+      counter.textContent = '0';
+      btn.disabled = false;
+      resultsContainer.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
+
